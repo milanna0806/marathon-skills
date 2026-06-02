@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marathon Skills 2026</title>
+<style>
+  :root {
+    --bg-dark:    #0d0f19;
+    --bg-panel:   #141726;
+    --bg-card:    #1a1d32;
+    --bg-header:  #101220;
+    --accent:     #8b5cf6;
+    --accent-h:   #6d28d9;
+    --accent-glow:rgba(139,92,246,0.25);
+    --green:      #34d399;
+    --yellow:     #f59e0b;
+    --red:        #ef4444;
+    --blue:       #3b82f6;
+    --pink:       #ec4899;
+    --text-p:     #ede9fe;
+    --text-m:     #8b87aa;
+    --text-d:     #4b4869;
+    --border:     #262844;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-p); min-height: 100vh; overflow-x: hidden; }
+
+  /* ── PAGES ── */
+  .page { display: none; flex-direction: column; min-height: 100vh; }
+  .page.active { display: flex; }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 20px; height: 64px;
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .logo {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .header-title { font-size: 18px; font-weight: 700; color: var(--text-p); }
+  .header-actions { margin-left: auto; display: flex; gap: 10px; }
+  .btn {
+    padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg-card); color: var(--text-m); font-size: 13px;
+    cursor: pointer; font-family: inherit; font-weight: 600; transition: all .15s;
+  }
+  .btn:hover { background: var(--bg-panel); color: var(--text-p); }
+  .btn.accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.accent:hover { background: var(--accent-h); }
+  .btn.back { padding: 6px 12px; }
+
+  /* ── COUNTDOWN BAR ── */
+  .countdown-bar {
+    background: #111827;
+    border-top: 1px solid var(--border);
+    height: 38px; display: flex; align-items: center;
+    padding: 0 20px; gap: 16px; flex-shrink: 0;
+    position: relative;
+  }
+  .countdown-bar::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+    background: var(--accent);
+  }
+  .countdown-bar span { font-size: 13px; font-weight: 600; color: #ddd6fe; padding-left: 8px; }
+
+  /* ── STRIP ── */
+  .strip {
+    background: var(--bg-panel); height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; border-bottom: 2px solid var(--accent); flex-shrink: 0;
+    position: relative; overflow: hidden;
+  }
+  .strip::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 300px;
+    background: linear-gradient(90deg, rgba(139,92,246,.12), transparent);
+  }
+  .strip-left { font-size: 13px; color: var(--text-m); z-index: 1; }
+  .strip-right {
+    background: linear-gradient(90deg, var(--accent-h), var(--accent));
+    color: #1a1d32; font-size: 12px; font-weight: 700;
+    padding: 6px 20px; clip-path: polygon(10% 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  /* ── HOME CONTENT ── */
+  .home-content { flex: 1; overflow-y: auto; padding: 0; background: var(--bg-dark); }
+  .home-inner { padding: 16px 24px 32px; }
+
+  /* Stats Row */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--bg-card); border-radius: 8px;
+    padding: 12px 10px; text-align: center; border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--c, var(--accent));
+  }
+  .stat-card::after {
+    content: ''; position: absolute; top: 3px; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 12%, transparent), transparent);
+  }
+  .stat-val { font-size: 18px; font-weight: 700; color: var(--c, var(--accent)); margin-bottom: 4px; }
+  .stat-lbl { font-size: 9px; font-weight: 700; color: var(--text-d); letter-spacing: 1px; }
+
+  /* Two-column */
+  .two-col { display: grid; grid-template-columns: 55fr 45fr; gap: 14px; }
+  .photo-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 58fr 42fr; gap: 6px; height: 400px; }
+  .photo-tile {
+    background: var(--bg-card); border-radius: 6px;
+    overflow: hidden; position: relative;
+    border: 1px solid rgba(139,92,246,.2);
+    display: flex; flex-direction: column;
+  }
+  .photo-tile.span2 { grid-column: span 2; }
+  .photo-tile img { width: 100%; height: 100%; object-fit: cover; flex: 1; }
+  .photo-tile-cap {
+    background: rgba(13,15,25,.75); color: #1a1d32;
+    font-size: 12px; font-weight: 600; padding: 4px 8px; text-align: center;
+    color: var(--text-m);
+  }
+  .photo-tile::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--c, var(--accent)); z-index: 2; }
+  .photo-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 40px; background: linear-gradient(180deg, rgba(139,92,246,.1), transparent); }
+
+  /* Info card */
+  .info-card {
+    background: var(--bg-card); border-radius: 8px;
+    border: 1px solid var(--border); height: 400px;
+    display: flex; flex-direction: column; overflow: hidden;
+    position: relative;
+  }
+  .info-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent); }
+  .info-card-inner { padding: 22px 24px; flex: 1; overflow-y: auto; }
+  .sec-label { font-size: 9px; font-weight: 700; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; }
+  .card-title { font-size: 18px; font-weight: 700; color: var(--text-p); margin: 8px 0 4px; }
+  .accent-line { width: 50px; height: 3px; background: var(--accent); margin-bottom: 14px; border-radius: 2px; }
+  .card-text { font-size: 13px; color: var(--text-m); line-height: 1.7; }
+  .card-text strong { color: var(--accent); font-weight: 600; }
+
+  /* ── MODAL OVERLAY ── */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.6); z-index: 100;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .overlay.active { display: flex; }
+  .modal {
+    background: var(--bg-card); border-radius: 10px;
+    border: 1px solid var(--border); max-height: 90vh;
+    overflow-y: auto; position: relative; width: 100%;
+  }
+  .modal-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 20px; height: 60px;
+    background: var(--bg-header); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 2;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-body { padding: 24px; }
+
+  /* ── REGISTER FORM ── */
+  .reg-modal { max-width: 820px; }
+  .reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-m); margin-bottom: 5px; }
+  .form-input {
+    width: 100%; padding: 7px 12px; background: var(--bg-panel);
+    border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-p); font-size: 13px; font-family: inherit;
+    outline: none; transition: border-color .15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-select {
+    width: 100%; padding: 7px 12px; background: var(--bg-panel);
+    border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-p); font-size: 13px; font-family: inherit;
+    outline: none; cursor: pointer;
+  }
+  .form-err { font-size: 11px; color: var(--red); margin-top: 3px; }
+  .strength-bar-wrap { width: 100%; height: 3px; background: var(--border); border-radius: 2px; margin-top: 4px; }
+  .strength-bar { height: 3px; border-radius: 2px; transition: width .2s, background .2s; width: 0; }
+  .reg-header { margin-bottom: 20px; }
+  .photo-box {
+    width: 108px; height: 108px; background: var(--bg-panel);
+    border: 1px dashed var(--border); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; cursor: pointer; overflow: hidden;
+  }
+  .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+  .reg-actions { display: flex; justify-content: center; gap: 12px; margin-top: 20px; }
+
+  /* ── BMI FORM ── */
+  .bmi-modal { max-width: 880px; }
+  .bmi-grid { display: grid; grid-template-columns: 44fr 56fr; gap: 20px; }
+  .gender-btns { display: flex; gap: 10px; margin-bottom: 16px; }
+  .gender-btn {
+    flex: 1; padding: 8px; border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-dark); color: var(--text-m);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .15s; font-family: inherit;
+  }
+  .gender-btn.male-active { background: rgba(59,130,246,.2); color: var(--blue); border-color: var(--blue); }
+  .gender-btn.female-active { background: rgba(236,72,153,.2); color: var(--pink); border-color: var(--pink); }
+  .input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .input-row label { font-size: 13px; color: var(--text-m); width: 80px; text-align: right; flex-shrink: 0; }
+  .num-input {
+    width: 90px; padding: 6px 10px;
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text-p); font-size: 13px; font-family: inherit;
+    outline: none;
+  }
+  .num-input:focus { border-color: var(--accent); }
+  .unit-lbl { font-size: 12px; color: var(--text-d); }
+  .extra-params { border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 12px; }
+  .extra-label { font-size: 9px; color: var(--pink); font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+  .bmi-result { background: var(--bg-card); border-radius: 8px; padding: 20px; }
+  .bmi-value { font-size: 48px; font-weight: 700; line-height: 1; }
+  .bmi-cat { font-size: 18px; font-weight: 700; margin-top: 8px; }
+  .bmi-scale { margin: 16px 0; }
+  .scale-bar { display: flex; height: 14px; border-radius: 3px; overflow: visible; position: relative; margin-bottom: 20px; }
+  .scale-seg { flex: 1; }
+  .scale-marker {
+    position: absolute; top: -6px; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 7px solid transparent; border-right: 7px solid transparent;
+    border-top: 14px solid var(--text-p);
+    transition: left .3s;
+  }
+  .scale-labels { display: flex; font-size: 10px; color: var(--text-d); }
+  .scale-labels span { flex: 1; text-align: center; }
+  .bmi-extras { font-size: 13px; color: var(--text-m); line-height: 2; }
+  .bmi-tips {
+    margin-top: 14px; border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px; font-size: 12px; color: var(--text-d); line-height: 2;
+    position: relative;
+  }
+  .bmi-tips::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: rgba(139,92,246,.3); }
+  .bmi-figure { font-size: 52px; float: right; }
+
+  /* ── USERS TABLE ── */
+  .users-modal { max-width: 960px; width: 100%; }
+  .filter-bar {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    background: rgba(20,22,40,1); border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .filter-bar label { font-size: 12px; color: var(--text-m); }
+  .filter-select {
+    padding: 5px 10px; background: var(--bg-panel);
+    border: 1px solid var(--border); border-radius: 5px;
+    color: var(--text-p); font-size: 12px; font-family: inherit; outline: none;
+  }
+  .search-wrap { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .search-input {
+    padding: 5px 10px; background: var(--bg-panel);
+    border: 1px solid var(--border); border-radius: 5px;
+    color: var(--text-p); font-size: 12px; font-family: inherit; outline: none; width: 180px;
+  }
+  .user-count {
+    padding: 8px 16px; background: rgba(26,29,50,1);
+    font-size: 13px; font-weight: 600; color: var(--accent);
+    border-bottom: 1px solid var(--border);
+  }
+  .users-table { width: 100%; border-collapse: collapse; }
+  .users-table th {
+    background: #101220; color: var(--accent);
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border);
+  }
+  .users-table td { padding: 10px 16px; font-size: 13px; color: var(--text-m); border-bottom: 1px solid rgba(38,40,68,.4); }
+  .users-table tr:nth-child(even) td { background: rgba(13,15,25,.4); }
+  .users-table tr:hover td { background: rgba(60,27,60,.3); }
+  .role-coord { color: var(--accent) !important; font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .two-col { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2,1fr); }
+    .reg-grid { grid-template-columns: 1fr; }
+    .bmi-grid { grid-template-columns: 1fr; }
+    .photo-grid { height: 220px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ HOME PAGE ═══════════════════════ -->
+<div id="page-home" class="page active">
+  <div class="header">
+    <div class="logo">M</div>
+    <span class="header-title">MARATHON SKILLS 2026</span>
+    <div class="header-actions">
+      <button class="btn" onclick="openUsers()">👥 Участники</button>
+      <button class="btn accent" onclick="openRegister()">✚ Регистрация</button>
+    </div>
+  </div>
+
+  <div class="strip">
+    <span class="strip-left">Казахстан · 15 июня 2026 · Кокшетау</span>
+    <span class="strip-right">🏆 WSC 2026</span>
+  </div>
+
+  <div class="home-content">
+    <div class="home-inner">
+      <!-- Stats -->
+      <div class="stats-row" style="margin-top:14px">
+        <div class="stat-card" style="--c:var(--accent)"><div class="stat-val">42.195 км</div><div class="stat-lbl">ДИСТАНЦИЯ</div></div>
+        <div class="stat-card" style="--c:var(--green)"><div class="stat-val">5 000+</div><div class="stat-lbl">УЧАСТНИКОВ</div></div>
+        <div class="stat-card" style="--c:var(--blue)"><div class="stat-val">20+</div><div class="stat-lbl">СТРАН</div></div>
+        <div class="stat-card" style="--c:var(--yellow)"><div class="stat-val">15 июня 2026</div><div class="stat-lbl">ДАТА СТАРТА</div></div>
+      </div>
+
+      <!-- Two column -->
+      <div class="two-col">
+        <div class="photo-grid">
+          <div class="photo-tile span2" style="--c:var(--accent)">
+            <img src="https://images.unsplash.com/photo-1530549387789-4c1017266635?w=900&q=80" alt="Старт" onerror="this.style.display='none'">
+            <div class="photo-placeholder" style="display:none">🏃</div>
+            <div class="photo-tile-cap">Старт марафона</div>
+          </div>
+          <div class="photo-tile" style="--c:var(--green)">
+            <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=600&q=80" alt="Финиш" onerror="this.style.display='none'">
+            <div class="photo-placeholder" style="display:none">🏅</div>
+            <div class="photo-tile-cap">Финиш</div>
+          </div>
+          <div class="photo-tile" style="--c:var(--blue)">
+            <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=600&q=80" alt="Команды" onerror="this.style.display='none'">
+            <div class="photo-placeholder" style="display:none">👥</div>
+            <div class="photo-tile-cap">Команды</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-inner">
+            <div class="sec-label">О МАРАФОНЕ</div>
+            <div class="card-title">Испытание воли<br>и выносливости</div>
+            <div class="accent-line"></div>
+            <div class="card-text">
+              Марафон — это не просто забег на дистанцию <strong>42,195 км</strong>. Это ежегодный ритуал,
+              который объединяет профессиональных атлетов, любителей и тысячи зрителей
+              в едином порыве воли и выносливости.<br><br>
+              Примерно на <strong>30–35 километре</strong> многие бегуны сталкиваются с явлением, которое
+              называют <strong>«стеной»</strong>. Запасы гликогена истощаются, и организм начинает требовать
+              немедленной остановки. Преодоление этого барьера — не вопрос физики, а вопрос
+              чистого упрямства и силы духа.<br><br>
+              Раз в году целые мегаполисы перекрывают движение, чтобы отдать улицы бегунам.
+            </div>
+            <br>
+            <button class="btn accent" style="width:100%;padding:10px" onclick="openRegister()">✚ Зарегистрироваться</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="countdown-bar">
+    <span id="countdown-home">⏱ Вычисляем...</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════ REGISTER MODAL ═══════════════════════ -->
+<div id="overlay-register" class="overlay">
+  <div class="modal reg-modal">
+    <div class="modal-header">
+      <div class="logo" style="width:28px;height:28px;font-size:14px">M</div>
+      <span class="modal-title">MARATHON SKILLS 2026</span>
+      <div style="margin-left:auto">
+        <button class="btn back" onclick="closeRegister()">← Назад</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="reg-header">
+        <div class="sec-label">УЧАСТНИК МАРАФОНА</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text-p);margin:6px 0 3px">Регистрация бегуна</div>
+        <div class="accent-line"></div>
+        <div style="font-size:12px;color:var(--text-m)">Заполните все поля для участия в марафоне</div>
+      </div>
+
+      <div class="reg-grid">
+        <!-- LEFT: fields -->
+        <div>
+          <div class="form-group">
+            <label class="form-label">📧 Email</label>
+            <input id="reg-email" class="form-input" type="email" placeholder="user@example.com">
+            <div id="err-email" class="form-err"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🔒 Пароль</label>
+            <input id="reg-pass" class="form-input" type="password" oninput="updateStrength()" placeholder="Минимум 6 символов">
+            <div class="strength-bar-wrap"><div id="strength-bar" class="strength-bar"></div></div>
+            <div id="err-pass" class="form-err"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🔒 Повторите пароль</label>
+            <input id="reg-pass2" class="form-input" type="password" placeholder="Повторите пароль">
+            <div id="err-pass2" class="form-err"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">👤 Имя</label>
+            <input id="reg-first" class="form-input" type="text" placeholder="Имя">
+            <div id="err-first" class="form-err"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">👤 Фамилия</label>
+            <input id="reg-last" class="form-input" type="text" placeholder="Фамилия">
+            <div id="err-last" class="form-err"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">⚧ Пол</label>
+            <select id="reg-gender" class="form-select">
+              <option>Мужской</option>
+              <option>Женский</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- RIGHT: photo + extra -->
+        <div>
+          <div class="form-group">
+            <div class="sec-label" style="margin-bottom:8px">ФОТО УЧАСТНИКА</div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div class="photo-box" id="photo-box" onclick="document.getElementById('file-input').click()">
+                <span>📷</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:8px">
+                <button class="btn" onclick="document.getElementById('file-input').click()">📂 Выбрать</button>
+                <div id="photo-name" style="font-size:11px;color:var(--text-d)">Photo_logo.jpg</div>
+                <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📅 Дата рождения</label>
+            <input id="reg-birth" class="form-input" type="date" value="1990-06-15">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🌍 Страна</label>
+            <select id="reg-country" class="form-select">
+              <option>Kazakhstan</option><option>Russia</option><option>Germany</option>
+              <option>France</option><option>USA</option><option>UK</option>
+              <option>Italy</option><option>Spain</option><option>Brazil</option>
+              <option>China</option><option>Japan</option><option>Kenya</option>
+              <option>Ethiopia</option><option>Ukraine</option><option>Belarus</option>
+              <option>Poland</option><option>Czech Republic</option><option>Sweden</option>
+              <option>Norway</option><option>Finland</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="reg-actions">
+        <button class="btn accent" style="padding:10px 28px;font-size:14px" onclick="register()">✚ Зарегистрироваться</button>
+        <button class="btn" style="padding:10px 20px" onclick="closeRegister()">✕ Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ BMI MODAL ═══════════════════════ -->
+<div id="overlay-bmi" class="overlay">
+  <div class="modal bmi-modal">
+    <div class="modal-header">
+      <div class="logo" style="width:28px;height:28px;font-size:14px">M</div>
+      <span class="modal-title">BMI КАЛЬКУЛЯТОР</span>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn accent" onclick="saveBMI()">💾 Сохранить</button>
+        <button class="btn back" onclick="closeBMI()">← Назад</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="sec-label">ИНДЕКС МАССЫ ТЕЛА</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text-p);margin:6px 0 3px">BMI Калькулятор</div>
+      <div class="accent-line"></div>
+
+      <div class="bmi-grid">
+        <!-- Left: inputs -->
+        <div>
+          <div style="font-size:9px;color:var(--text-d);font-weight:700;letter-spacing:1px;margin-bottom:8px">ПОЛ</div>
+          <div class="gender-btns">
+            <button id="btn-male" class="gender-btn male-active" onclick="setGender('male')">♂ Мужской</button>
+            <button id="btn-female" class="gender-btn" onclick="setGender('female')">♀ Женский</button>
+          </div>
+          <div class="input-row">
+            <label>Рост:</label>
+            <input id="bmi-h" class="num-input" type="number" min="100" max="250" value="170">
+            <span class="unit-lbl">см</span>
+          </div>
+          <div class="input-row">
+            <label>Вес:</label>
+            <input id="bmi-w" class="num-input" type="number" min="20" max="300" value="70">
+            <span class="unit-lbl">кг</span>
+          </div>
+          <div class="input-row">
+            <label>Возраст:</label>
+            <input id="bmi-age" class="num-input" type="number" min="10" max="100" value="25">
+            <span class="unit-lbl">лет</span>
+          </div>
+
+          <div class="extra-params">
+            <div class="extra-label">ДОП. ПАРАМЕТРЫ (ДЛЯ ЖЕНЩИН)</div>
+            <div class="input-row">
+              <label>Талия:</label>
+              <input id="bmi-waist" class="num-input" type="number" min="40" max="200" value="70">
+              <span class="unit-lbl">см</span>
+            </div>
+            <div class="input-row">
+              <label>Бёдра:</label>
+              <input id="bmi-hip" class="num-input" type="number" min="50" max="200" value="90">
+              <span class="unit-lbl">см</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="btn accent" style="flex:1" onclick="calcBMI()">▶ Рассчитать</button>
+            <button class="btn" onclick="resetBMI()">↺ Сброс</button>
+          </div>
+        </div>
+
+        <!-- Right: result -->
+        <div class="bmi-result">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:9px;color:var(--text-d);font-weight:700;letter-spacing:1px">РЕЗУЛЬТАТ</div>
+              <div id="bmi-val" class="bmi-value" style="color:var(--text-d)">—</div>
+              <div id="bmi-cat" class="bmi-cat" style="color:var(--text-m)">Введите данные</div>
+            </div>
+            <div id="bmi-figure" class="bmi-figure">🏃</div>
+          </div>
+
+          <div class="bmi-scale">
+            <div class="scale-bar" style="position:relative;height:14px;border-radius:3px;overflow:visible;margin:16px 0 8px">
+              <div style="background:#4a90e6;flex:23;border-radius:3px 0 0 3px;height:14px;display:inline-block;width:23%"></div>
+              <div style="background:#48c774;flex:28;height:14px;display:inline-block;width:28%"></div>
+              <div style="background:#ffc132;flex:22;height:14px;display:inline-block;width:22%"></div>
+              <div style="background:#f05050;flex:27;border-radius:0 3px 3px 0;height:14px;display:inline-block;width:27%"></div>
+              <div id="scale-marker" class="scale-marker" style="left:11.5%;opacity:0"></div>
+            </div>
+            <div class="scale-labels">
+              <span>&lt; 18.5</span><span>18.5–24</span><span>25–29</span><span>≥ 30</span>
+            </div>
+          </div>
+
+          <div id="bmi-extras" class="bmi-extras"></div>
+          <div id="bmi-user" style="font-size:11px;color:var(--text-d);margin-top:6px"></div>
+
+          <div class="bmi-tips">
+            💡 ИМТ не учитывает мышечную массу<br>
+            💡 Для спортсменов BMI может быть выше нормы<br>
+            💡 Для женщин нормальный % жира выше, чем у мужчин
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="countdown-bar" style="border-top:1px solid var(--border)">
+      <span id="countdown-bmi">⏱ Вычисляем...</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ USERS MODAL ═══════════════════════ -->
+<div id="overlay-users" class="overlay">
+  <div class="modal users-modal">
+    <div class="modal-header">
+      <div class="logo" style="width:28px;height:28px;font-size:14px">M</div>
+      <span class="modal-title">MARATHON SKILLS 2026</span>
+      <div style="margin-left:auto">
+        <button class="btn back" onclick="closeUsers()">← Назад</button>
+      </div>
+    </div>
+    <div style="background:var(--bg-panel);padding:10px 20px;border-bottom:2px solid var(--accent)">
+      <span style="font-size:14px;font-weight:700;color:var(--text-p)">Зарегистрированные участники</span>
+    </div>
+
+    <div class="filter-bar">
+      <label>Роль:</label>
+      <select id="filter-role" class="filter-select" onchange="refreshGrid()">
+        <option>Все роли</option><option>Координатор</option><option>Бегун</option>
+      </select>
+      <label style="margin-left:12px">Сортировка:</label>
+      <select id="filter-sort" class="filter-select" onchange="refreshGrid()">
+        <option value="first">Имени</option>
+        <option value="last">Фамилии</option>
+        <option value="email">Email</option>
+        <option value="role">Роли</option>
+      </select>
+      <div class="search-wrap">
+        🔍 <input id="filter-search" class="search-input" placeholder="Поиск..." oninput="refreshGrid()">
+        <button class="btn accent" style="padding:5px 12px" onclick="refreshGrid()">Обновить</button>
+      </div>
+    </div>
+
+    <div id="user-count" class="user-count"></div>
+    <div class="table-wrap">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>ИМЯ</th><th>ФАМИЛИЯ</th><th>EMAIL</th><th>BMI</th><th>РОЛЬ</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+    <div class="countdown-bar" style="border-top:1px solid var(--border)">
+      <span id="countdown-users">⏱ Вычисляем...</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let nextId = 100;
+let currentGender = 'male';
+let currentBmi = 0;
+let currentUser = null;
+
+const users = [
+  { id:1, firstName:'First',  lastName:'User1', email:'first@email.com',  gender:'Мужской', role:'Координатор', bmi:null, country:'Kazakhstan' },
+  { id:2, firstName:'Second', lastName:'User2', email:'second@email.com', gender:'Мужской', role:'Координатор', bmi:null, country:'Kazakhstan' },
+  { id:3, firstName:'Third',  lastName:'User3', email:'third@email.com',  gender:'Мужской', role:'Координатор', bmi:null, country:'Kazakhstan' },
+  { id:4, firstName:'Fourth', lastName:'User4', email:'fourth@email.com', gender:'Мужской', role:'Бегун',        bmi:null, country:'Kazakhstan' },
+  { id:5, firstName:'Fifth',  lastName:'User5', email:'fifth@email.com',  gender:'Мужской', role:'Бегун',        bmi:null, country:'Kazakhstan' },
+  { id:6, firstName:'Sixth',  lastName:'User6', email:'sixth@email.com',  gender:'Мужской', role:'Бегун',        bmi:null, country:'Kazakhstan' },
+];
+
+// ── COUNTDOWN ──────────────────────────────────────────────────────────────
+function getCountdown() {
+  const now = new Date();
+  let target = new Date(now.getFullYear(), 5, 15, 9, 0, 0); // June 15
+  if (now >= target) target = new Date(now.getFullYear() + 1, 5, 15, 9, 0, 0);
+  const diff = target - now;
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  return `${d} дней ${h} часов ${m} минут ${s} секунд до старта марафона!`;
+}
+
+function tickAll() {
+  const t = getCountdown();
+  ['countdown-home','countdown-bmi','countdown-users'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '⏱ ' + t;
+  });
+}
+tickAll();
+setInterval(tickAll, 1000);
+
+// ── PHOTO HANDLING ─────────────────────────────────────────────────────────
+function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('photo-name').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const box = document.getElementById('photo-box');
+    box.innerHTML = `<img src="${ev.target.result}" alt="photo">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── PASSWORD STRENGTH ──────────────────────────────────────────────────────
+function updateStrength() {
+  const pw = document.getElementById('reg-pass').value;
+  let str = 0;
+  if (pw.length >= 6)  str++;
+  if (pw.length >= 10) str++;
+  if (/[A-Z]/.test(pw)) str++;
+  if (/[0-9]/.test(pw)) str++;
+  if (/[^a-zA-Z0-9]/.test(pw)) str++;
+  const colors = ['#ef4444','#ef4444','#f59e0b','#f59e0b','#34d399'];
+  const bar = document.getElementById('strength-bar');
+  bar.style.width = Math.max(5, str / 5 * 100) + '%';
+  bar.style.background = colors[Math.min(str, 4)];
+}
+
+// ── REGISTER ───────────────────────────────────────────────────────────────
+function openRegister() { document.getElementById('overlay-register').classList.add('active'); }
+function closeRegister() { document.getElementById('overlay-register').classList.remove('active'); }
+
+function register() {
+  const email  = document.getElementById('reg-email').value.trim();
+  const pass   = document.getElementById('reg-pass').value;
+  const pass2  = document.getElementById('reg-pass2').value;
+  const first  = document.getElementById('reg-first').value.trim();
+  const last   = document.getElementById('reg-last').value.trim();
+  const gender = document.getElementById('reg-gender').value;
+  const birth  = document.getElementById('reg-birth').value;
+  const country= document.getElementById('reg-country').value;
+
+  // Clear errors
+  ['email','pass','pass2','first','last'].forEach(k => document.getElementById('err-'+k).textContent = '');
+  let ok = true;
+  if (!email.includes('@') || !email.includes('.')) { document.getElementById('err-email').textContent = '✕ Введите корректный email'; ok = false; }
+  if (pass.length < 6)  { document.getElementById('err-pass').textContent = '✕ Не менее 6 символов'; ok = false; }
+  if (pass !== pass2)   { document.getElementById('err-pass2').textContent = '✕ Пароли не совпадают'; ok = false; }
+  if (!first) { document.getElementById('err-first').textContent = '✕ Введите имя'; ok = false; }
+  if (!last)  { document.getElementById('err-last').textContent = '✕ Введите фамилию'; ok = false; }
+  if (!ok) return;
+
+  const user = { id: nextId++, firstName: first, lastName: last, email, gender, country, birth, role: 'Бегун', bmi: null };
+  users.push(user);
+  currentUser = user;
+
+  closeRegister();
+  openBMI(user);
+}
+
+// ── BMI ────────────────────────────────────────────────────────────────────
+function openBMI(user) {
+  currentUser = user || currentUser;
+  currentGender = currentUser?.gender === 'Женский' ? 'female' : 'male';
+  setGender(currentGender);
+  if (currentUser) document.getElementById('bmi-user').textContent = '👤 ' + currentUser.firstName + ' ' + currentUser.lastName + ' · ' + (currentGender === 'female' ? 'Женский' : 'Мужской');
+  resetBMI();
+  document.getElementById('overlay-bmi').classList.add('active');
+}
+function closeBMI() { document.getElementById('overlay-bmi').classList.remove('active'); }
+
+function setGender(g) {
+  currentGender = g;
+  document.getElementById('btn-male').className = 'gender-btn' + (g==='male' ? ' male-active' : '');
+  document.getElementById('btn-female').className = 'gender-btn' + (g==='female' ? ' female-active' : '');
+  if (currentBmi > 0) updateBMIResult();
+}
+
+function calcBMI() {
+  const h = parseFloat(document.getElementById('bmi-h').value) / 100;
+  const w = parseFloat(document.getElementById('bmi-w').value);
+  currentBmi = Math.round(w / (h * h) * 10) / 10;
+  updateBMIResult();
+}
+
+function resetBMI() {
+  currentBmi = 0;
+  document.getElementById('bmi-val').textContent = '—';
+  document.getElementById('bmi-val').style.color = 'var(--text-d)';
+  document.getElementById('bmi-cat').textContent = 'Введите данные';
+  document.getElementById('bmi-cat').style.color = 'var(--text-m)';
+  document.getElementById('bmi-figure').textContent = '🏃';
+  document.getElementById('bmi-extras').innerHTML = '';
+  document.getElementById('scale-marker').style.opacity = '0';
+}
+
+function updateBMIResult() {
+  if (currentBmi <= 0) { resetBMI(); return; }
+  const isFemale = currentGender === 'female';
+  const highNorm = isFemale ? 24.0 : 25.0;
+  const highOver = isFemale ? 29.0 : 30.0;
+  let cat, col, fig;
+  if (currentBmi < 18.5)      { cat='Недостаточный вес'; col='var(--blue)';   fig='🚶'; }
+  else if (currentBmi < highNorm) { cat='Здоровый вес ✓';   col='var(--green)';  fig='🏃'; }
+  else if (currentBmi < highOver) { cat='Избыточный вес';   col='var(--yellow)'; fig='🚶'; }
+  else                            { cat='Ожирение';          col='var(--red)';    fig='🧍'; }
+
+  document.getElementById('bmi-val').textContent = currentBmi.toFixed(1);
+  document.getElementById('bmi-val').style.color = col;
+  document.getElementById('bmi-cat').textContent = cat;
+  document.getElementById('bmi-cat').style.color = col;
+  document.getElementById('bmi-figure').textContent = fig;
+
+  // Scale marker
+  const pct = Math.min(Math.max((currentBmi - 14) / 28, 0.01), 0.99);
+  const marker = document.getElementById('scale-marker');
+  marker.style.left = (pct * 100) + '%';
+  marker.style.opacity = '1';
+
+  // Ideal weight (Devine)
+  const h = parseFloat(document.getElementById('bmi-h').value);
+  let idealLow = isFemale ? 45.5 + 2.3*((h-152.4)/2.54) : 50.0 + 2.3*((h-152.4)/2.54);
+  let idealHigh = idealLow + 5;
+
+  // Body fat (Deurenberg)
+  const age = parseInt(document.getElementById('bmi-age').value);
+  let bf = isFemale ? (1.2*currentBmi + 0.23*age - 5.4) : (1.2*currentBmi + 0.23*age - 16.2);
+  bf = Math.max(0, bf);
+  const bfCats = (bf, f) => f ? (bf<21?'Спортивный':bf<25?'Фит':bf<32?'Приемлемый':'Высокий') : (bf<6?'Спортивный':bf<14?'Фит':bf<25?'Приемлемый':'Высокий');
+
+  document.getElementById('bmi-extras').innerHTML =
+    `⚖️ &nbsp;Идеальный вес: ${Math.round(idealLow)}–${Math.round(idealHigh)} кг<br>` +
+    `🔥 Оценка жира: ${bf.toFixed(1)}% &nbsp;(${bfCats(bf,isFemale)})` +
+    (isFemale ? `<br><small style="color:var(--pink);font-size:10px">* норма для женщин 18.5–24.0</small>` : '');
+}
+
+function saveBMI() {
+  if (currentBmi <= 0) { alert('Сначала рассчитайте BMI.'); return; }
+  if (currentUser) currentUser.bmi = currentBmi;
+  closeBMI();
+  openUsers();
+}
+
+// ── USERS ──────────────────────────────────────────────────────────────────
+function openUsers() {
+  document.getElementById('overlay-users').classList.add('active');
+  refreshGrid();
+}
+function closeUsers() { document.getElementById('overlay-users').classList.remove('active'); }
+
+function refreshGrid() {
+  let list = [...users];
+  const role = document.getElementById('filter-role').value;
+  if (role !== 'Все роли') list = list.filter(u => u.role === role);
+  const q = document.getElementById('filter-search').value.trim().toLowerCase();
+  if (q) list = list.filter(u =>
+    u.firstName.toLowerCase().includes(q) ||
+    u.lastName.toLowerCase().includes(q) ||
+    u.email.toLowerCase().includes(q)
+  );
+  const sortKey = document.getElementById('filter-sort').value;
+  const sortMap = { first:'firstName', last:'lastName', email:'email', role:'role' };
+  list.sort((a,b) => (a[sortMap[sortKey]]||'').localeCompare(b[sortMap[sortKey]]||''));
+
+  const tbody = document.getElementById('users-tbody');
+  tbody.innerHTML = list.map(u => `
+    <tr>
+      <td>${u.firstName}</td>
+      <td>${u.lastName}</td>
+      <td>${u.email}</td>
+      <td>${u.bmi != null ? u.bmi.toFixed(1) : '—'}</td>
+      <td class="${u.role==='Координатор'?'role-coord':''}">${u.role}</td>
+    </tr>
+  `).join('');
+
+  const runners = list.filter(u=>u.role==='Бегун').length;
+  const coords  = list.filter(u=>u.role==='Координатор').length;
+  document.getElementById('user-count').textContent =
+    `  Всего: ${list.length}   |   🏃 Бегунов: ${runners}   |   📋 Координаторов: ${coords}`;
+}
+
+// Close overlays on background click
+['overlay-register','overlay-bmi','overlay-users'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+});
+
+// Handle broken images — show placeholder
+document.querySelectorAll('.photo-tile img').forEach(img => {
+  img.addEventListener('error', function() {
+    this.style.display = 'none';
+    this.nextElementSibling && (this.nextElementSibling.style.display = '');
+    const ph = this.parentElement.querySelector('.photo-placeholder');
+    if (ph) ph.style.display = 'flex';
+  });
+});
+</script>
+</body>
+</html>
